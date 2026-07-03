@@ -24,4 +24,6 @@ export const api = {
   get: (id) => req(`/api/feedback/${id}`),
   update: (id, patch) => req(`/api/feedback/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
   vote: (id, dir) => req(`/api/feedback/${id}/vote`, { method: 'POST', body: JSON.stringify({ dir }) }),
+  comments: (id) => req(`/api/feedback/${id}/comments`),
+  addComment: (id, c) => req(`/api/feedback/${id}/comments`, { method: 'POST', body: JSON.stringify(c) }),
 }

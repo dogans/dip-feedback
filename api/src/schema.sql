@@ -33,6 +33,15 @@ ALTER TABLE feedback ADD COLUMN IF NOT EXISTS votes INTEGER NOT NULL DEFAULT 0;
 CREATE INDEX IF NOT EXISTS idx_feedback_project ON feedback(project_id);
 CREATE INDEX IF NOT EXISTS idx_feedback_status  ON feedback(status);
 
+CREATE TABLE IF NOT EXISTS feedback_comments (
+  id          SERIAL PRIMARY KEY,
+  feedback_id INTEGER NOT NULL REFERENCES feedback(id) ON DELETE CASCADE,
+  author      TEXT,
+  body        TEXT NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_fc_feedback ON feedback_comments(feedback_id);
+
 -- Örnek projeler (yalnızca yoksa)
 INSERT INTO projects (key, name) VALUES ('metaworks', 'Metaworks')
   ON CONFLICT (key) DO NOTHING;

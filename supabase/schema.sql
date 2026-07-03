@@ -71,6 +71,23 @@ grant select on public.projects to anon, authenticated;
 grant insert on public.feedback to anon;
 grant select, update on public.feedback to authenticated;
 
+-- 3b) Yorum thread'i (feedback altında tartışma) --------------------------
+create table if not exists public.feedback_comments (
+  id          uuid primary key default gen_random_uuid(),
+  feedback_id uuid not null references public.feedback(id) on delete cascade,
+  author      text,                 -- opsiyonel isim (anonim olabilir)
+  body        text not null,
+  created_at  timestamptz not null default now()
+);
+create index if not exists idx_fc_feedback on public.feedback_comments(feedback_id);
+
+alter table public.feedback_comments enable row level security;
+drop policy if exists "fc read auth"   on public.feedback_comments;
+drop policy if exists "fc insert auth" on public.feedback_comments;
+create policy "fc read auth"   on public.feedback_comments for select to authenticated using (true);
+create policy "fc insert auth" on public.feedback_comments for insert to authenticated with check (true);
+grant select, insert on public.feedback_comments to authenticated;
+
 -- 4) Storage (ekran görüntüleri) ------------------------------------------
 insert into storage.buckets (id, name, public) values ('screenshots', 'screenshots', true)
   on conflict (id) do nothing;

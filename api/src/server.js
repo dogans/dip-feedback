@@ -128,6 +128,25 @@ app.get('/api/feedback/:id', async (req, reply) => {
   return { ...r, screenshot_url: screenshotUrl(r.screenshot_path) }
 })
 
+// Yorum thread'i
+app.get('/api/feedback/:id/comments', async (req) => {
+  const { rows } = await query(
+    'SELECT id, author, body, created_at FROM feedback_comments WHERE feedback_id = $1 ORDER BY created_at',
+    [req.params.id]
+  )
+  return rows
+})
+
+app.post('/api/feedback/:id/comments', async (req, reply) => {
+  const b = req.body || {}
+  if (!b.body || !b.body.trim()) return reply.code(400).send({ error: 'body required' })
+  const { rows } = await query(
+    'INSERT INTO feedback_comments (feedback_id, author, body) VALUES ($1,$2,$3) RETURNING id, author, body, created_at',
+    [req.params.id, b.author || null, b.body.trim()]
+  )
+  return reply.code(201).send(rows[0])
+})
+
 // Anonim oy (+1 / -1). GREATEST ile 0'ın altına inmez.
 app.post('/api/feedback/:id/vote', async (req, reply) => {
   const dir = req.body && Number(req.body.dir) === -1 ? -1 : 1

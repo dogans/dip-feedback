@@ -27,6 +27,8 @@ const filters = ref({ project: '', status: '', category: '', assignee: '' })
 const selected = ref(null)
 const imgScale = ref(1)
 const loading = ref(false)
+const comments = ref([])
+const newComment = ref({ author: '', body: '' })
 
 // project_key → görünen ad (backend'den bağımsız)
 const projMap = computed(() => Object.fromEntries(projects.value.map((p) => [p.key, p.name])))
@@ -44,6 +46,16 @@ async function loadList() {
 async function open(id) {
   selected.value = await backend.get(id)
   imgScale.value = 1
+  comments.value = await backend.comments(id)
+  newComment.value = { author: '', body: '' }
+}
+
+async function sendComment() {
+  const body = newComment.value.body.trim()
+  if (!body || !selected.value) return
+  const c = await backend.addComment(selected.value.id, { author: newComment.value.author.trim() || null, body })
+  comments.value.push(c)
+  newComment.value = { author: '', body: '' }
 }
 
 function onImgLoad(e) {
@@ -225,6 +237,25 @@ watch(filters, loadList, { deep: true })
           <li>Tarih: {{ fmt(selected.created_at) }}</li>
           <li class="ua">{{ selected.user_agent }}</li>
         </ul>
+
+        <div class="thread">
+          <h4>Yorumlar ({{ comments.length }})</h4>
+          <div v-if="!comments.length" class="cmt-empty">Henüz yorum yok.</div>
+          <div v-for="c in comments" :key="c.id" class="cmt">
+            <div class="cmt-head">{{ c.author || 'anonim' }} · {{ fmt(c.created_at) }}</div>
+            <div class="cmt-body">{{ c.body }}</div>
+          </div>
+          <div class="cmt-form">
+            <input v-model="newComment.author" placeholder="Adınız (opsiyonel)" />
+            <textarea
+              v-model="newComment.body"
+              rows="2"
+              placeholder="Yorum ekle… (ör. 'yapıldı', 'şu an gereksiz')"
+              @keydown.ctrl.enter="sendComment"
+            ></textarea>
+            <button :disabled="!newComment.body.trim()" @click="sendComment">Ekle</button>
+          </div>
+        </div>
       </section>
       <section class="detail empty2" v-else>Bir kayıt seçin.</section>
     </div>
@@ -289,4 +320,15 @@ header select { padding: 6px 8px; border-radius: 6px; border: none; }
 .controls select, .controls input { padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; }
 .metalist { list-style: none; padding: 0; font-size: 12px; color: #777; }
 .metalist .ua { word-break: break-all; margin-top: 4px; }
+.thread { margin-top: 16px; border-top: 1px solid #eee; padding-top: 12px; }
+.thread h4 { margin: 0 0 8px; font-size: 13px; }
+.cmt-empty { color: #999; font-size: 12px; }
+.cmt { background: #fff; border: 1px solid #eee; border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; }
+.cmt-head { font-size: 11px; color: #888; margin-bottom: 2px; }
+.cmt-body { font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cmt-form { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; max-width: 520px; }
+.cmt-form input, .cmt-form textarea { border: 1px solid #ccc; border-radius: 6px; padding: 7px; font-size: 13px; font-family: inherit; }
+.cmt-form textarea { resize: vertical; }
+.cmt-form button { align-self: flex-start; border: none; border-radius: 6px; background: #1976d2; color: #fff; font-weight: 600; padding: 7px 16px; cursor: pointer; }
+.cmt-form button:disabled { opacity: .5; cursor: default; }
 </style>

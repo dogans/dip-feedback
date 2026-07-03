@@ -45,6 +45,24 @@ const supabaseBackend = {
     if (error) throw error
     return { votes: data }
   },
+  async comments(feedbackId) {
+    const { data, error } = await supabase
+      .from('feedback_comments')
+      .select('id, author, body, created_at')
+      .eq('feedback_id', feedbackId)
+      .order('created_at')
+    if (error) throw error
+    return data
+  },
+  async addComment(feedbackId, c) {
+    const { data, error } = await supabase
+      .from('feedback_comments')
+      .insert({ feedback_id: feedbackId, author: c.author || null, body: c.body })
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  },
   async currentUser() {
     const { data } = await supabase.auth.getUser()
     return data.user
