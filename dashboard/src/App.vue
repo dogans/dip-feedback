@@ -61,6 +61,24 @@ async function patch(field, value) {
 
 const fmt = (d) => new Date(d).toLocaleString('tr-TR')
 
+// Anonim oy — tarayıcı bazlı toggle (localStorage), atıf yok.
+const VOTED_KEY = 'dipfb_voted'
+const votedIds = ref(new Set(JSON.parse(localStorage.getItem(VOTED_KEY) || '[]')))
+const hasVoted = (id) => votedIds.value.has(String(id))
+
+async function toggleVote(item) {
+  const id = String(item.id)
+  const dir = votedIds.value.has(id) ? -1 : 1
+  const { votes } = await backend.vote(item.id, dir)
+  item.votes = votes
+  if (selected.value && String(selected.value.id) === id) selected.value.votes = votes
+  const s = new Set(votedIds.value)
+  if (dir === 1) s.add(id)
+  else s.delete(id)
+  votedIds.value = s
+  localStorage.setItem(VOTED_KEY, JSON.stringify([...s]))
+}
+
 async function loadData() {
   projects.value = await backend.projects()
   assignees.value = await backend.assignees()
@@ -145,6 +163,9 @@ watch(filters, loadList, { deep: true })
             <span class="proj">{{ projName(it.project_key) }}</span>
             <span class="cat-badge" :data-c="it.category">{{ CAT_LABEL[it.category] || it.category }}</span>
             <span class="badge" :data-s="it.status">{{ STATUS_LABEL[it.status] }}</span>
+            <button class="vote" :class="{ voted: hasVoted(it.id) }" title="+1" @click.stop="toggleVote(it)">
+              👍 {{ it.votes || 0 }}
+            </button>
           </div>
           <div class="title">{{ it.title || it.comment || '(boş)' }}</div>
           <div class="meta">{{ it.reporter || 'anonim' }} · {{ fmt(it.created_at) }}</div>
@@ -155,6 +176,9 @@ watch(filters, loadList, { deep: true })
         <div class="dhead">
           <strong>#{{ selected.id }}</strong> · {{ projName(selected.project_key) }}
           <span class="cat-badge" :data-c="selected.category">{{ CAT_LABEL[selected.category] || selected.category }}</span>
+          <button class="vote" :class="{ voted: hasVoted(selected.id) }" title="+1" @click="toggleVote(selected)">
+            👍 {{ selected.votes || 0 }}
+          </button>
           <a v-if="selected.url" :href="selected.url" target="_blank" rel="noopener">↗ sayfa</a>
         </div>
 
@@ -243,6 +267,9 @@ header select { padding: 6px 8px; border-radius: 6px; border: none; }
 .cat-badge[data-c='enhancement'] { background: #c8e6c9; color: #1b5e20; }
 .cat-badge[data-c='content'] { background: #ffe0b2; color: #e65100; }
 .cat-badge[data-c='question'] { background: #b3e5fc; color: #01579b; }
+.vote { border: 1px solid #cfd8dc; background: #fff; color: #546e7a; border-radius: 12px; padding: 1px 8px; font-size: 11px; cursor: pointer; line-height: 1.6; }
+.vote:hover { background: #eceff1; }
+.vote.voted { background: #1976d2; border-color: #1976d2; color: #fff; font-weight: 600; }
 .title {
   font-size: 13px; font-weight: 600; margin: 3px 0;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;

@@ -40,6 +40,11 @@ const supabaseBackend = {
     if (error) throw error
     return data
   },
+  async vote(id, dir) {
+    const { data, error } = await supabase.rpc('vote', { fid: id, delta: dir })
+    if (error) throw error
+    return { votes: data }
+  },
   async currentUser() {
     const { data } = await supabase.auth.getUser()
     return data.user

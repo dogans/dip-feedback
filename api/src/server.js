@@ -106,7 +106,7 @@ app.get('/api/feedback', async (req) => {
   const clause = where.length ? `WHERE ${where.join(' AND ')}` : ''
   const { rows } = await query(
     `SELECT f.id, p.key AS project_key, p.name AS project_name, f.title, f.comment, f.category,
-            f.status, f.priority, f.assignee, f.url, f.reporter, f.screenshot_path, f.created_at
+            f.status, f.priority, f.assignee, f.votes, f.url, f.reporter, f.screenshot_path, f.created_at
      FROM feedback f JOIN projects p ON p.id = f.project_id
      ${clause}
      ORDER BY f.created_at DESC`,
@@ -126,6 +126,17 @@ app.get('/api/feedback/:id', async (req, reply) => {
   if (rows.length === 0) return reply.code(404).send({ error: 'not found' })
   const r = rows[0]
   return { ...r, screenshot_url: screenshotUrl(r.screenshot_path) }
+})
+
+// Anonim oy (+1 / -1). GREATEST ile 0'ın altına inmez.
+app.post('/api/feedback/:id/vote', async (req, reply) => {
+  const dir = req.body && Number(req.body.dir) === -1 ? -1 : 1
+  const { rows } = await query(
+    'UPDATE feedback SET votes = GREATEST(0, votes + $1) WHERE id = $2 RETURNING votes',
+    [dir, req.params.id]
+  )
+  if (!rows.length) return reply.code(404).send({ error: 'not found' })
+  return { votes: rows[0].votes }
 })
 
 // Dashboard → status/priority/assignee güncelle

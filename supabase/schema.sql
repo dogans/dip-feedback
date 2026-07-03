@@ -33,6 +33,14 @@ create table if not exists public.feedback (
 
 -- Mevcut tabloya kolon ekle (tekrar çalıştırmada / eski tabloda self-healing)
 alter table public.feedback add column if not exists category text not null default 'bug';
+alter table public.feedback add column if not exists votes integer not null default 0;
+
+-- Atomik oy (anonim +1 / -1). security definer → anon da RLS'e takılmadan sayacı değiştirebilir.
+create or replace function public.vote(fid uuid, delta int)
+returns integer language sql security definer set search_path = public as $$
+  update public.feedback set votes = greatest(0, votes + delta) where id = fid returning votes;
+$$;
+grant execute on function public.vote(uuid, int) to anon, authenticated;
 
 create index if not exists idx_feedback_project on public.feedback(project_key);
 create index if not exists idx_feedback_status  on public.feedback(status);

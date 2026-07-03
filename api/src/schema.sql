@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS feedback (
 
 -- Mevcut tabloya kolon ekle (yeni alanlar için self-healing)
 ALTER TABLE feedback ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'bug';
+ALTER TABLE feedback ADD COLUMN IF NOT EXISTS votes INTEGER NOT NULL DEFAULT 0;
 
 CREATE INDEX IF NOT EXISTS idx_feedback_project ON feedback(project_id);
 CREATE INDEX IF NOT EXISTS idx_feedback_status  ON feedback(status);
