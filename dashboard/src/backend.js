@@ -4,7 +4,7 @@ import { api as legacyApi } from './api'
 // Supabase modu: doğrudan Postgres (RLS) + Auth.
 const supabaseBackend = {
   mode: 'supabase',
-  needsAuth: true,
+  needsAuth: false, // açık mod: dashboard login istemez (anon key ile okur/günceller)
   async projects() {
     const { data, error } = await supabase.from('projects').select('key,name').order('name')
     if (error) throw error

@@ -60,16 +60,20 @@ drop policy if exists "projects read"        on public.projects;
 drop policy if exists "feedback insert anon" on public.feedback;
 drop policy if exists "feedback read auth"   on public.feedback;
 drop policy if exists "feedback update auth" on public.feedback;
+drop policy if exists "feedback insert"      on public.feedback;
+drop policy if exists "feedback read"        on public.feedback;
+drop policy if exists "feedback update"      on public.feedback;
 
-create policy "projects read"        on public.projects for select using (true);
-create policy "feedback insert anon"  on public.feedback for insert to anon           with check (true);
-create policy "feedback read auth"    on public.feedback for select to authenticated  using (true);
-create policy "feedback update auth"  on public.feedback for update to authenticated  using (true) with check (true);
+-- AÇIK MOD (login yok): anon okur/ekler/günceller. Publishable key public olduğundan
+-- veri de fiilen public olur. Hassas içerik olursa read/update'i 'to authenticated'a çevir.
+create policy "projects read"   on public.projects for select using (true);
+create policy "feedback insert" on public.feedback  for insert with check (true);
+create policy "feedback read"   on public.feedback  for select using (true);
+create policy "feedback update" on public.feedback  for update using (true) with check (true);
 
 grant usage on schema public to anon, authenticated;
 grant select on public.projects to anon, authenticated;
-grant insert on public.feedback to anon;
-grant select, update on public.feedback to authenticated;
+grant select, insert, update on public.feedback to anon, authenticated;
 
 -- 3b) Yorum thread'i (feedback altında tartışma) --------------------------
 create table if not exists public.feedback_comments (
@@ -84,9 +88,11 @@ create index if not exists idx_fc_feedback on public.feedback_comments(feedback_
 alter table public.feedback_comments enable row level security;
 drop policy if exists "fc read auth"   on public.feedback_comments;
 drop policy if exists "fc insert auth" on public.feedback_comments;
-create policy "fc read auth"   on public.feedback_comments for select to authenticated using (true);
-create policy "fc insert auth" on public.feedback_comments for insert to authenticated with check (true);
-grant select, insert on public.feedback_comments to authenticated;
+drop policy if exists "fc read"        on public.feedback_comments;
+drop policy if exists "fc insert"      on public.feedback_comments;
+create policy "fc read"   on public.feedback_comments for select using (true);
+create policy "fc insert" on public.feedback_comments for insert with check (true);
+grant select, insert on public.feedback_comments to anon, authenticated;
 
 -- 4) Storage (ekran görüntüleri) ------------------------------------------
 insert into storage.buckets (id, name, public) values ('screenshots', 'screenshots', true)
