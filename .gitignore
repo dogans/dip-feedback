@@ -15,3 +15,6 @@ api/public/widget.js
 supabase/SETUP.md
 
 # NOT: dashboard/public/widget.js bilerek commit'lenir — Cloudflare Pages onu servis eder.
+
+# cross-platform npm ci / rollup optional-dep bug — lockfile commit etme
+package-lock.json
