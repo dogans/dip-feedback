@@ -15,7 +15,7 @@ async function submit() {
     await backend.signIn(email.value.trim(), password.value)
     emit('authed')
   } catch (e) {
-    error.value = e?.message || 'Giriş başarısız.'
+    error.value = e?.message || 'Sign in failed.'
   } finally {
     busy.value = false
   }
@@ -26,10 +26,10 @@ async function submit() {
   <div class="login">
     <form class="card" @submit.prevent="submit">
       <h1>🐞 Feedback</h1>
-      <p class="sub">Yönetim paneline giriş</p>
-      <input v-model="email" type="email" placeholder="E-posta" autocomplete="username" />
-      <input v-model="password" type="password" placeholder="Şifre" autocomplete="current-password" />
-      <button :disabled="busy" type="submit">{{ busy ? '…' : 'Giriş' }}</button>
+      <p class="sub">Sign in to the admin panel</p>
+      <input v-model="email" type="email" placeholder="Email" autocomplete="username" />
+      <input v-model="password" type="password" placeholder="Password" autocomplete="current-password" />
+      <button :disabled="busy" type="submit">{{ busy ? '…' : 'Sign in' }}</button>
       <div v-if="error" class="err">{{ error }}</div>
     </form>
   </div>

@@ -110,7 +110,7 @@ async function capture() {
     openEditor(canvas)
   } catch (e) {
     console.error('[dip-feedback] capture failed', e)
-    alert('Screenshot alınamadı.')
+    alert('Could not capture screenshot.')
   } finally {
     fab.disabled = false
     fab.textContent = '🐞 Feedback'
@@ -124,7 +124,7 @@ function openEditor(shot: HTMLCanvasElement) {
   overlay.className = 'overlay'
   overlay.innerHTML = `
     <div class="panel">
-      <div class="head">Feedback <span class="hint">— sürükleyerek işaretleyin</span></div>
+      <div class="head">Feedback <span class="hint">— drag to highlight</span></div>
       <div class="body">
         <div class="canvas-wrap"><canvas class="draw"></canvas></div>
         <div class="side">
@@ -133,14 +133,14 @@ function openEditor(shot: HTMLCanvasElement) {
               (c, i) => `<button type="button" class="cat${i === 0 ? ' active' : ''}" data-cat="${c.key}">${c.label}</button>`
             ).join('')}
           </div>
-          <input class="reporter" placeholder="Adınız (opsiyonel)" />
-          <textarea class="comment" placeholder="Ne oldu? Ne bekliyordunuz?"></textarea>
+          <input class="reporter" placeholder="Your name (optional)" />
+          <textarea class="comment" placeholder="What happened? What did you expect?"></textarea>
           <div class="msg"></div>
         </div>
       </div>
       <div class="foot">
-        <button class="act cancel">İptal</button>
-        <button class="act send">Gönder</button>
+        <button class="act cancel">Cancel</button>
+        <button class="act send">Send</button>
       </div>
     </div>`
   root.appendChild(overlay)
@@ -213,11 +213,11 @@ function openEditor(shot: HTMLCanvasElement) {
     const reporter = overlay.querySelector<HTMLInputElement>('.reporter')!.value.trim()
     const msg = overlay.querySelector<HTMLDivElement>('.msg')!
     if (!comment) {
-      msg.textContent = 'Lütfen bir açıklama yazın.'
+      msg.textContent = 'Please write a description.'
       return
     }
     sendBtn.disabled = true
-    msg.textContent = 'Gönderiliyor…'
+    msg.textContent = 'Sending…'
     // Ham screenshot (annotation'sız); kutular ayrı katman → dashboard'da bindirilir.
     const clean = document.createElement('canvas')
     clean.width = shot.width
@@ -237,11 +237,11 @@ function openEditor(shot: HTMLCanvasElement) {
     try {
       if (CFG.supabase && CFG.anon) await submitSupabase(base, clean)
       else await submitLegacy(base, clean)
-      msg.textContent = 'Teşekkürler! Gönderildi.'
+      msg.textContent = 'Thanks! Sent.'
       setTimeout(close, 900)
     } catch (e) {
       console.error('[dip-feedback] send failed', e)
-      msg.textContent = 'Gönderilemedi. Tekrar deneyin.'
+      msg.textContent = "Couldn't send. Try again."
       sendBtn.disabled = false
     }
   }

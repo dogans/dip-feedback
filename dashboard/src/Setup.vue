@@ -51,61 +51,61 @@ async function copy() {
 
 <template>
   <div class="setup">
-    <h2>Feedback butonunu kur</h2>
+    <h2>Install the feedback button</h2>
     <p class="lead">
-      Siteye hiçbir kod eklemeden geri bildirim toplayın. Aşağıdaki düğmeyi tarayıcınızın
-      <b>yer imi (favoriler) çubuğuna sürükleyin</b>. Sonra herhangi bir sayfada ona tıklayınca
-      sağ altta 🐞 çıkar.
+      Collect feedback without adding any code to your site. <b>Drag the button below to your
+      browser's bookmarks bar</b>. Then, on any page, click it and the 🐞 widget appears at the
+      bottom right.
     </p>
 
     <label class="field">
-      Proje
+      Project
       <select v-model="selected">
         <option v-for="p in projects" :key="p.key" :value="p.key">{{ p.name }} ({{ p.key }})</option>
       </select>
     </label>
 
     <div class="drag-area">
-      <!-- Sürükle-bırak ile yer imi olur; tıklama engellenir (kazara çalışmasın) -->
+      <!-- Dragging creates a bookmarklet; click is prevented (so it doesn't fire by accident) -->
       <a class="bm" :href="bookmarklet" draggable="true" @click.prevent>🐞 Feedback → {{ projectKey }}</a>
-      <span class="drag-hint">↑ bunu yer imi çubuğuna sürükleyin</span>
+      <span class="drag-hint">↑ drag this to your bookmarks bar</span>
     </div>
 
     <div class="fallback">
-      <p class="fb-title">Sürükleyemiyorsanız — kodu kopyalayıp elle ekleyin:</p>
+      <p class="fb-title">Can't drag? Copy the code and add it manually:</p>
       <textarea readonly rows="3" class="code" @focus="$event.target.select()">{{ bookmarklet }}</textarea>
-      <button class="copy" @click="copy">{{ copied ? 'Kopyalandı ✓' : 'Kodu kopyala' }}</button>
+      <button class="copy" @click="copy">{{ copied ? 'Copied ✓' : 'Copy code' }}</button>
 
       <details>
         <summary>Chrome</summary>
         <ol>
-          <li>Yer İmi Yöneticisi: <kbd>⌘ ⌥ B</kbd></li>
-          <li>Sağ üstte <b>⋮</b> → <b>Add new bookmark</b></li>
-          <li>Name: <code>🐞 Feedback</code> · URL: <b>yapıştır</b> (<kbd>⌘ V</kbd>) → Save</li>
+          <li>Bookmark Manager: <kbd>⌘ ⌥ B</kbd></li>
+          <li>Top right <b>⋮</b> → <b>Add new bookmark</b></li>
+          <li>Name: <code>🐞 Feedback</code> · URL: <b>paste</b> (<kbd>⌘ V</kbd>) → Save</li>
         </ol>
       </details>
       <details>
         <summary>Safari</summary>
         <ol>
-          <li>Favoriler çubuğunu göster: <kbd>⌘ ⇧ B</kbd></li>
-          <li>Herhangi bir sayfada <kbd>⌘ D</kbd> → <b>Favoriler</b>'e ekle, adı <code>🐞 Feedback</code></li>
-          <li>Yer İmlerini Düzenle: <kbd>⌘ ⌥ B</kbd></li>
-          <li>🐞 Feedback'in <b>Adres</b> alanına çift tıkla → kodu <b>yapıştır</b> → Enter</li>
+          <li>Show the favorites bar: <kbd>⌘ ⇧ B</kbd></li>
+          <li>On any page <kbd>⌘ D</kbd> → add to <b>Favorites</b>, name it <code>🐞 Feedback</code></li>
+          <li>Edit Bookmarks: <kbd>⌘ ⌥ B</kbd></li>
+          <li>Double-click the <b>Address</b> field of 🐞 Feedback → <b>paste</b> the code → Enter</li>
         </ol>
-        <p class="tiny">Safari, "ekle" kutusuna elle yazılan <code>javascript:</code>'i siler; bu yüzden önce yer imi oluşturup <b>adresini düzenle</b>.</p>
+        <p class="tiny">Safari strips a manually typed <code>javascript:</code> in the "add" dialog, so create the bookmark first, then <b>edit its address</b>.</p>
       </details>
     </div>
 
     <ol class="steps">
-      <li>Düğmeyi yer imi çubuğuna sürükle (bir kez).</li>
-      <li>Metaworks veya sitenizi aç.</li>
-      <li>Yer imindeki <b>🐞 Feedback</b>'e tıkla → işaretle + yorum yaz → gönder.</li>
-      <li>Kayıt <b>Gelen Kutusu</b>'na düşer.</li>
+      <li>Drag the button to your bookmarks bar (once).</li>
+      <li>Open your app or website.</li>
+      <li>Click <b>🐞 Feedback</b> in the bar → highlight + write a comment → send.</li>
+      <li>The record lands in the <b>Inbox</b>.</li>
     </ol>
 
     <p class="note">
-      Not: Bu, sayfanın <b>içinde</b> çalışır → gerçek ekran görüntüsü + tam erişim. Katı CSP'li bazı
-      üçüncü-taraf siteler enjekte edilen script'i engelleyebilir; kendi uygulamalarınızda sorun olmaz.
+      Note: this runs <b>inside</b> the page → real screenshot + full access. Some third-party sites
+      with strict CSP may block the injected script; your own apps won't have this issue.
     </p>
   </div>
 </template>

@@ -8,7 +8,7 @@ const view = ref('inbox') // 'inbox' | 'setup'
 
 const STATUSES = ['open', 'in_progress', 'done', 'wontfix']
 const PRIORITIES = ['low', 'normal', 'high']
-const STATUS_LABEL = { open: 'Açık', in_progress: 'Devam', done: 'Bitti', wontfix: 'Yapılmayacak' }
+const STATUS_LABEL = { open: 'Open', in_progress: 'In progress', done: 'Done', wontfix: "Won't fix" }
 const CATEGORIES = ['bug', 'cosmetic', 'enhancement', 'content', 'question']
 const CAT_LABEL = {
   bug: 'Bug',
@@ -71,7 +71,7 @@ async function patch(field, value) {
   if (field === 'assignee') assignees.value = await backend.assignees()
 }
 
-const fmt = (d) => new Date(d).toLocaleString('tr-TR')
+const fmt = (d) => new Date(d).toLocaleString('en-US')
 
 // Anonim oy — tarayıcı bazlı toggle (localStorage), atıf yok.
 const VOTED_KEY = 'dipfb_voted'
@@ -134,37 +134,37 @@ watch(filters, loadList, { deep: true })
     <header>
       <h1>🐞 Feedback</h1>
       <nav class="nav">
-        <button :class="{ active: view === 'inbox' }" @click="view = 'inbox'">Gelen Kutusu</button>
-        <button :class="{ active: view === 'setup' }" @click="view = 'setup'">Kurulum</button>
+        <button :class="{ active: view === 'inbox' }" @click="view = 'inbox'">Inbox</button>
+        <button :class="{ active: view === 'setup' }" @click="view = 'setup'">Setup</button>
       </nav>
       <template v-if="view === 'inbox'">
         <select v-model="filters.project">
-          <option value="">Tüm projeler</option>
+          <option value="">All projects</option>
           <option v-for="p in projects" :key="p.key" :value="p.key">{{ p.name }}</option>
         </select>
         <select v-model="filters.status">
-          <option value="">Tüm durumlar</option>
+          <option value="">All statuses</option>
           <option v-for="s in STATUSES" :key="s" :value="s">{{ STATUS_LABEL[s] }}</option>
         </select>
         <select v-model="filters.category">
-          <option value="">Tüm türler</option>
+          <option value="">All types</option>
           <option v-for="c in CATEGORIES" :key="c" :value="c">{{ CAT_LABEL[c] }}</option>
         </select>
         <select v-model="filters.assignee">
-          <option value="">Tüm atananlar</option>
+          <option value="">All assignees</option>
           <option v-for="a in assignees" :key="a" :value="a">{{ a }}</option>
         </select>
-        <span class="count">{{ items.length }} kayıt</span>
+        <span class="count">{{ items.length }} items</span>
       </template>
-      <button v-if="user && user.email" class="logout" @click="logout" :title="user.email">Çıkış</button>
+      <button v-if="user && user.email" class="logout" @click="logout" :title="user.email">Logout</button>
     </header>
 
     <Setup v-if="view === 'setup'" :projects="projects" />
 
     <div class="main" v-else>
       <ul class="list">
-        <li v-if="loading" class="empty">Yükleniyor…</li>
-        <li v-else-if="!items.length" class="empty">Kayıt yok.</li>
+        <li v-if="loading" class="empty">Loading…</li>
+        <li v-else-if="!items.length" class="empty">No records.</li>
         <li
           v-for="it in items"
           :key="it.id"
@@ -179,8 +179,8 @@ watch(filters, loadList, { deep: true })
               👍 {{ it.votes || 0 }}
             </button>
           </div>
-          <div class="title">{{ it.title || it.comment || '(boş)' }}</div>
-          <div class="meta">{{ it.reporter || 'anonim' }} · {{ fmt(it.created_at) }}</div>
+          <div class="title">{{ it.title || it.comment || '(empty)' }}</div>
+          <div class="meta">{{ it.reporter || 'anonymous' }} · {{ fmt(it.created_at) }}</div>
         </li>
       </ul>
 
@@ -191,7 +191,7 @@ watch(filters, loadList, { deep: true })
           <button class="vote" :class="{ voted: hasVoted(selected.id) }" title="+1" @click="toggleVote(selected)">
             👍 {{ selected.votes || 0 }}
           </button>
-          <a v-if="selected.url" :href="selected.url" target="_blank" rel="noopener">↗ sayfa</a>
+          <a v-if="selected.url" :href="selected.url" target="_blank" rel="noopener">↗ page</a>
         </div>
 
         <div class="shot" v-if="selected.screenshot_url">
@@ -212,17 +212,17 @@ watch(filters, loadList, { deep: true })
         <p class="comment">{{ selected.comment }}</p>
 
         <div class="controls">
-          <label>Durum
+          <label>Status
             <select :value="selected.status" @change="patch('status', $event.target.value)">
               <option v-for="s in STATUSES" :key="s" :value="s">{{ STATUS_LABEL[s] }}</option>
             </select>
           </label>
-          <label>Öncelik
+          <label>Priority
             <select :value="selected.priority" @change="patch('priority', $event.target.value)">
               <option v-for="p in PRIORITIES" :key="p" :value="p">{{ p }}</option>
             </select>
           </label>
-          <label>Atanan
+          <label>Assignee
             <input
               :value="selected.assignee || ''"
               placeholder="—"
@@ -232,32 +232,32 @@ watch(filters, loadList, { deep: true })
         </div>
 
         <ul class="metalist">
-          <li>Raporlayan: {{ selected.reporter || 'anonim' }}</li>
+          <li>Reporter: {{ selected.reporter || 'anonymous' }}</li>
           <li>Viewport: {{ selected.viewport_w }}×{{ selected.viewport_h }}</li>
-          <li>Tarih: {{ fmt(selected.created_at) }}</li>
+          <li>Date: {{ fmt(selected.created_at) }}</li>
           <li class="ua">{{ selected.user_agent }}</li>
         </ul>
 
         <div class="thread">
-          <h4>Yorumlar ({{ comments.length }})</h4>
-          <div v-if="!comments.length" class="cmt-empty">Henüz yorum yok.</div>
+          <h4>Comments ({{ comments.length }})</h4>
+          <div v-if="!comments.length" class="cmt-empty">No comments yet.</div>
           <div v-for="c in comments" :key="c.id" class="cmt">
-            <div class="cmt-head">{{ c.author || 'anonim' }} · {{ fmt(c.created_at) }}</div>
+            <div class="cmt-head">{{ c.author || 'anonymous' }} · {{ fmt(c.created_at) }}</div>
             <div class="cmt-body">{{ c.body }}</div>
           </div>
           <div class="cmt-form">
-            <input v-model="newComment.author" placeholder="Adınız (opsiyonel)" />
+            <input v-model="newComment.author" placeholder="Your name (optional)" />
             <textarea
               v-model="newComment.body"
               rows="2"
-              placeholder="Yorum ekle… (ör. 'yapıldı', 'şu an gereksiz')"
+              placeholder="Add a comment… (e.g. 'done', 'not needed now')"
               @keydown.ctrl.enter="sendComment"
             ></textarea>
-            <button :disabled="!newComment.body.trim()" @click="sendComment">Ekle</button>
+            <button :disabled="!newComment.body.trim()" @click="sendComment">Add</button>
           </div>
         </div>
       </section>
-      <section class="detail empty2" v-else>Bir kayıt seçin.</section>
+      <section class="detail empty2" v-else>Select a record.</section>
     </div>
   </div>
 </template>
