@@ -1,0 +1,10 @@
+{
+  // Cloudflare Worker = sadece statik varlık sunucusu (dist/). Worker script yok.
+  // Bu açık config, wrangler'ın framework/Vite auto-config'ine girmesini engeller.
+  "name": "dip-feedback",
+  "compatibility_date": "2026-07-03",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
