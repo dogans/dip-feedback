@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>dip-feedback widget demo</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }
+      .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin: 12px 0; }
+    </style>
+  </head>
+  <body>
+    <h1>Örnek uygulama</h1>
+    <p>Sağ alttaki <b>🐞 Feedback</b> butonuna tıklayın, ekranı işaretleyip gönderin.</p>
+    <div class="card"><h3>Kart 1</h3><p>Herhangi bir içerik.</p></div>
+    <div class="card"><h3>Kart 2</h3><button>Bir buton</button></div>
+
+    <!-- API'yi çalıştırıp widget'ı build ettikten sonra: -->
+    <script
+      src="http://localhost:4000/widget.js"
+      data-project="metaworks"
+      data-api="http://localhost:4000"
+      data-env="staging"
+      defer
+    ></script>
+  </body>
+</html>

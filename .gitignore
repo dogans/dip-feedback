@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.log
+.env
+.DS_Store
+
+# yüklenen ekran görüntüleri (yerel Fastify modu)
+api/uploads/*
+!api/uploads/.gitkeep
+
+# build artifact — yerel Fastify servisi için, `npm --prefix widget run build` üretir
+api/public/widget.js
+
+# deploy rehberi (istenirse repo dışı)
+supabase/SETUP.md
+
+# NOT: dashboard/public/widget.js bilerek commit'lenir — Cloudflare Pages onu servis eder.
