@@ -11,11 +11,13 @@ async function req(path, opts) {
 
 export const api = {
   projects: () => req('/api/projects'),
-  list: ({ project, status, category } = {}) => {
+  assignees: () => req('/api/assignees'),
+  list: ({ project, status, category, assignee } = {}) => {
     const q = new URLSearchParams()
     if (project) q.set('project', project)
     if (status) q.set('status', status)
     if (category) q.set('category', category)
+    if (assignee) q.set('assignee', assignee)
     const qs = q.toString()
     return req('/api/feedback' + (qs ? `?${qs}` : ''))
   },

@@ -21,8 +21,9 @@ const CAT_LABEL = {
 const user = ref(null)
 const authReady = ref(false)
 const projects = ref([])
+const assignees = ref([])
 const items = ref([])
-const filters = ref({ project: '', status: '', category: '' })
+const filters = ref({ project: '', status: '', category: '', assignee: '' })
 const selected = ref(null)
 const imgScale = ref(1)
 const loading = ref(false)
@@ -55,12 +56,14 @@ async function patch(field, value) {
   const updated = await backend.update(selected.value.id, { [field]: value })
   Object.assign(selected.value, updated)
   await loadList()
+  if (field === 'assignee') assignees.value = await backend.assignees()
 }
 
 const fmt = (d) => new Date(d).toLocaleString('tr-TR')
 
 async function loadData() {
   projects.value = await backend.projects()
+  assignees.value = await backend.assignees()
   await loadList()
 }
 
@@ -116,6 +119,10 @@ watch(filters, loadList, { deep: true })
         <select v-model="filters.category">
           <option value="">Tüm türler</option>
           <option v-for="c in CATEGORIES" :key="c" :value="c">{{ CAT_LABEL[c] }}</option>
+        </select>
+        <select v-model="filters.assignee">
+          <option value="">Tüm atananlar</option>
+          <option v-for="a in assignees" :key="a" :value="a">{{ a }}</option>
         </select>
         <span class="count">{{ items.length }} kayıt</span>
       </template>

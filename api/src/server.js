@@ -34,6 +34,14 @@ app.get('/api/projects', async () => {
   return rows
 })
 
+// Filtre için mevcut (distinct) atananlar
+app.get('/api/assignees', async () => {
+  const { rows } = await query(
+    "SELECT DISTINCT assignee FROM feedback WHERE assignee IS NOT NULL AND assignee <> '' ORDER BY assignee"
+  )
+  return rows.map((r) => r.assignee)
+})
+
 // Widget → feedback gönderir
 app.post('/api/feedback', async (req, reply) => {
   const b = req.body || {}
@@ -76,7 +84,7 @@ app.post('/api/feedback', async (req, reply) => {
 
 // Dashboard → liste (filtreli)
 app.get('/api/feedback', async (req) => {
-  const { project, status, category } = req.query
+  const { project, status, category, assignee } = req.query
   const where = []
   const params = []
   if (project) {
@@ -90,6 +98,10 @@ app.get('/api/feedback', async (req) => {
   if (category) {
     params.push(category)
     where.push(`f.category = $${params.length}`)
+  }
+  if (assignee) {
+    params.push(assignee)
+    where.push(`f.assignee = $${params.length}`)
   }
   const clause = where.length ? `WHERE ${where.join(' AND ')}` : ''
   const { rows } = await query(

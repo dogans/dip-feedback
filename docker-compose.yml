@@ -24,6 +24,7 @@ services:
     ports:
       - "4000:4000"
     volumes:
+      - ./api/src:/app/src
       - ./api/uploads:/app/uploads
       - ./api/public:/app/public
     depends_on:

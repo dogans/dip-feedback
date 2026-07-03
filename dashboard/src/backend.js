@@ -10,14 +10,20 @@ const supabaseBackend = {
     if (error) throw error
     return data
   },
-  async list({ project, status, category } = {}) {
+  async list({ project, status, category, assignee } = {}) {
     let q = supabase.from('feedback').select('*').order('created_at', { ascending: false })
     if (project) q = q.eq('project_key', project)
     if (status) q = q.eq('status', status)
     if (category) q = q.eq('category', category)
+    if (assignee) q = q.eq('assignee', assignee)
     const { data, error } = await q
     if (error) throw error
     return data
+  },
+  async assignees() {
+    const { data, error } = await supabase.from('feedback').select('assignee').not('assignee', 'is', null)
+    if (error) throw error
+    return [...new Set(data.map((r) => r.assignee).filter((a) => a && a.trim()))].sort()
   },
   async get(id) {
     const { data, error } = await supabase.from('feedback').select('*').eq('id', id).single()
