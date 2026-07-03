@@ -59,8 +59,8 @@ canvas { max-width: 68vw; max-height: 72vh; cursor: crosshair; }
 .cats { display: flex; flex-wrap: wrap; gap: 6px; }
 .cat { border: 1px solid #ccc; background: #fff; color: #444; border-radius: 14px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
 .cat.active { background: #1976d2; border-color: #1976d2; color: #fff; font-weight: 600; }
-textarea, input {
-  width: 100%; border: 1px solid #ccc; border-radius: 6px; padding: 8px; font-size: 13px;
+textarea, input, select {
+  width: 100%; border: 1px solid #ccc; border-radius: 6px; padding: 8px; font-size: 13px; background: #fff;
 }
 textarea { min-height: 120px; resize: vertical; }
 .foot { display: flex; gap: 8px; justify-content: flex-end; padding: 10px 14px; border-top: 1px solid #eee; }
@@ -70,6 +70,24 @@ button.act { border: none; border-radius: 6px; padding: 8px 14px; font-size: 13p
 .cancel { background: #eee; color: #333; }
 .msg { font-size: 12px; color: #1976d2; }
 `
+
+// Gönderim ekranındaki proje seçici için proje listesi (public read).
+async function fetchProjects(): Promise<{ key: string; name: string }[]> {
+  try {
+    if (CFG.supabase && CFG.anon) {
+      const r = await fetch(`${CFG.supabase}/rest/v1/projects?select=key,name&order=name`, {
+        headers: { apikey: CFG.anon, Authorization: `Bearer ${CFG.anon}` },
+      })
+      if (r.ok) return await r.json()
+    } else if (CFG.api) {
+      const r = await fetch(`${CFG.api}/api/projects`)
+      if (r.ok) return await r.json()
+    }
+  } catch (e) {
+    /* sessiz: liste alınamazsa CFG.project'e düşer */
+  }
+  return []
+}
 
 let host: HTMLDivElement
 let root: ShadowRoot
@@ -128,6 +146,7 @@ function openEditor(shot: HTMLCanvasElement) {
       <div class="body">
         <div class="canvas-wrap"><canvas class="draw"></canvas></div>
         <div class="side">
+          <select class="project"><option value="${CFG.project}">${CFG.project}</option></select>
           <div class="cats">
             ${CATS.map(
               (c, i) => `<button type="button" class="cat${i === 0 ? ' active' : ''}" data-cat="${c.key}">${c.label}</button>`
@@ -144,6 +163,21 @@ function openEditor(shot: HTMLCanvasElement) {
       </div>
     </div>`
   root.appendChild(overlay)
+
+  // Proje seçici: bookmarklet'teki proje varsayılan, gönderirken değiştirilebilir.
+  let project = CFG.project
+  const projectSel = overlay.querySelector<HTMLSelectElement>('select.project')!
+  projectSel.onchange = () => (project = projectSel.value)
+  fetchProjects().then((projs) => {
+    if (!projs.length) return // liste yoksa CFG.project ile devam
+    projectSel.innerHTML = projs
+      .map((p) => `<option value="${p.key}"${p.key === CFG.project ? ' selected' : ''}>${p.name}</option>`)
+      .join('')
+    if (!projs.some((p) => p.key === CFG.project)) {
+      project = projs[0].key
+      projectSel.value = project
+    }
+  })
 
   let category = CATS[0].key
   overlay.querySelectorAll<HTMLButtonElement>('.cat').forEach((btn) => {
@@ -235,8 +269,8 @@ function openEditor(shot: HTMLCanvasElement) {
       annotations: rects.map((r) => ({ type: 'rect', ...r })),
     }
     try {
-      if (CFG.supabase && CFG.anon) await submitSupabase(base, clean)
-      else await submitLegacy(base, clean)
+      if (CFG.supabase && CFG.anon) await submitSupabase(base, clean, project)
+      else await submitLegacy(base, clean, project)
       msg.textContent = 'Thanks! Sent.'
       setTimeout(close, 900)
     } catch (e) {
@@ -262,7 +296,7 @@ function canvasToBlob(c: HTMLCanvasElement): Promise<Blob> {
 }
 
 // Supabase: Storage'a yükle + REST ile satır ekle (anon key).
-async function submitSupabase(base: Base, clean: HTMLCanvasElement) {
+async function submitSupabase(base: Base, clean: HTMLCanvasElement, project: string) {
   const headers = { apikey: CFG.anon, Authorization: `Bearer ${CFG.anon}` }
   const name = `${(crypto as any).randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.floor(Math.random() * 1e9)}.png`
   const blob = await canvasToBlob(clean)
@@ -274,7 +308,7 @@ async function submitSupabase(base: Base, clean: HTMLCanvasElement) {
   if (!up.ok) throw new Error('storage ' + up.status)
   const screenshot_url = `${CFG.supabase}/storage/v1/object/public/screenshots/${name}`
   const row = {
-    project_key: CFG.project,
+    project_key: project,
     title: base.title,
     comment: base.comment,
     category: base.category,
@@ -295,12 +329,12 @@ async function submitSupabase(base: Base, clean: HTMLCanvasElement) {
 }
 
 // Legacy self-host Fastify API.
-async function submitLegacy(base: Base, clean: HTMLCanvasElement) {
+async function submitLegacy(base: Base, clean: HTMLCanvasElement, project: string) {
   const res = await fetch(`${CFG.api}/api/feedback`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      projectKey: CFG.project,
+      projectKey: project,
       ...base,
       viewport: { w: window.innerWidth, h: window.innerHeight },
       screenshot: clean.toDataURL('image/png'),
